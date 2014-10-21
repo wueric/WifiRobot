@@ -1,0 +1,61 @@
+\documentclass[letterpaper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumerate}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{courier}
+
+\usepackage{mathtools}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\lstset{%
+  language=[LaTeX]TeX,
+  basicstyle=\ttfamily,
+  breaklines=true,
+  columns=fullflexible
+}
+
+
+
+\begin{document}
+
+\title{WiFi-nder Project Charter}
+\author{Chaitanya Aluru \\ Sean Roberts \\ Eric Wu}
+\date{}
+\maketitle
+
+\subsection*{Project Goal}
+
+This project will create an autonomous wheeled robot that seeks out strong WiFi signal in a room to perform a basic internet operation.
+
+\subsection*{Project Approach}
+
+The project will model the radiation pattern of WiFi present in the room and attempt to seek out an area with signal strength above a specific threshold. We anticipate that there will be many local maxima of WiFi signal strengths due to interference patterns. Therefore, our exploration algorithm will be governed by a state machine that first attempts to find local maxima and then move towards higher higher local maxima. The goal will be to consistently find signal strength above a predefined threshold if such a condition exists within the space reachable by our project.
+
+\subsection*{Resources}
+
+The plan is to initially use the mbed FRMD KL25Z board as the processor core for the robot, and to use the iRobot Create as the robot platform. We will also need a wifi shield for the mbed. Preliminary searches have led us to the Adafruit CC3000 WiFi Breakout board, though this may change. In addition, depending on the wifi shield that we choose, we may need an antenna for the board. Since the project goal requires that we travel in the direction of the strongest wifi signal, a directional antenna may be used to give our robot a better sense of which direction to travel in.
+
+In addition, if we have extra time, we may attempt to replace the Roomba with our own car design. In this case, we will require at least two servo motors, wheels, and some sort of physical enclosure to hold our electronics.
+
+\subsection*{Schedule}
+
+\begin{itemize}
+\item October 21 - Project Charter due, project repository created
+\item November 4 - Project review with GSI, hopefully have ordered/received parts at this time
+\item November 11 - Have mbed and wifi shield running, and wifi shield outputting signal intensity measurements
+\item November 18 - mbed should be able to drive the wheels of the iRobot
+\item November 25 - Project milestone report due. If we are ahead of schedule we may try to get servo motors for our own car
+\item December 17 - 15 minute project demo
+\item December 19 - Project Report due
+\end{itemize}
+
+\subsection*{Risk and Feasibility}
+
+There are a couple of substantial unknowns. Merely using the spatial wifi signal intensities to plan movement may be unreliable, and reflections off of various surfaces and the movement of objects and people may complicate our intensity measurements. There is also the potential difficulty of having to modify the provided library code for our wifi shield to provide intensity measurements. In addition, it may be difficult to determine the direction to travel in, since we will likely have only a single antenna, though this may be remedied by using a directional antenna.
+
+Developing on the iRobot Create platform should be relatively straightforward, since the robot has been thoroughly tested and we have some experience working with it. However, using the mbed board in conjunction with the iRobot Create may not be entirely straightforward, as we may have to reimplement the portions of the code that allow the robot to move and rotate.
+
+\end{document}
