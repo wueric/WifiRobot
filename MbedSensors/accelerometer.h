@@ -17,7 +17,7 @@ class AccelMeasure {
 
         AccelMeasure(float, float, float);
         void updateAccelerometerRead ();
-}
+};
 
 
 AccelMeasure operator+ (AccelMeasure a, AccelMeasure b);

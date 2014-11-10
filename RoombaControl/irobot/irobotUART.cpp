@@ -44,7 +44,7 @@ int32_t irobotUARTOpen(
 
     if (!irobot_IsError(status)) {
         port->baud(baudRate);
-        port->format(8, Serial::None, 10);
+        port->format(8, Serial::None, 1);
     }
 
     return status;

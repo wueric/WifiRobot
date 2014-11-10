@@ -1,6 +1,6 @@
 #include "accelerometer.h"
 
-MMA8451Q AccelMeasure::accelerometer = MMA8451Q(PTE25, PTE24, MM8451_I2C_ADDRESS);
+MMA8451Q AccelMeasure::accelerometer = MMA8451Q(PTE25, PTE24, MMA8451_I2C_ADDRESS);
 
 AccelMeasure::AccelMeasure(float x, float y, float z) : x_accel(x), y_accel(y), z_accel(z) {
 }

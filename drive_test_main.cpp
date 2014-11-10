@@ -30,7 +30,7 @@ static const float alpha_decay = 0.5; // accelerometer low pass filter negative
 
 int main (int argc, char** argv) {
 
-    MMA8451Q accelerometer(PTE25, PTE24, MM8451_I2C_ADDRESS);
+    MMA8451Q accelerometer(PTE25, PTE24, MMA8451_I2C_ADDRESS);
 
     Serial port_as_serial = Serial(PTE22, PTE23);
     irobotUARTPort_t port = (irobotUARTPort_t) (&port_as_serial);
@@ -49,7 +49,19 @@ int main (int argc, char** argv) {
 
     int32_t status = irobotOpen(port);
 
+    
+    /*
+    For debugging only
+    */
+    DigitalOut myled(LED1);
+    myled = 1;
+
+    irobotSensorPollSensorGroup6(port, &sensors);
+
     while (!sensors.buttons.advance) {
+
+        // update from sensors
+        irobotSensorPollSensorGroup6(port, &sensors);
 
         // take accelerometer measurement
         accelMeasurements.updateAccelerometerRead();
@@ -68,7 +80,7 @@ int main (int argc, char** argv) {
             &leftWheelSpeed,
             &rightWheelSpeed);
        
-        status = irobotDriveDirect(port, leftWheelSpeed, rightWheelSpeed); 
+        irobotDriveDirect(port, leftWheelSpeed, rightWheelSpeed); 
     }
 
     status = irobotClose(port);
