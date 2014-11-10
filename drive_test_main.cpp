@@ -7,6 +7,7 @@
 #include "irobot.h"
 #include "irobotSensorTypes.h"
 #include "accelerometer.h"
+#include "TimeoutMultipleSerial.h"
 
 #define MMA8451_I2C_ADDRESS (0x1d)
 
@@ -28,9 +29,17 @@ void irobotTestNavigate(
 static const float alpha_decay = 0.5; // accelerometer low pass filter negative
         // feedback coefficient
 
+static const uint32_t timeout = 1000;
+
 int main (int argc, char** argv) {
 
     MMA8451Q accelerometer(PTE25, PTE24, MMA8451_I2C_ADDRESS);
+
+    TimeoutMultipleSerial port_as_serial = TimeoutMultipleSerial(PTE22, PTE23, 
+        NULL, timeout);
+    irobotUARTPort_t port = (irobotUARTPort_t) (&port_as_serial);
+
+
 
     Serial port_as_serial = Serial(PTE22, PTE23);
     irobotUARTPort_t port = (irobotUARTPort_t) (&port_as_serial);

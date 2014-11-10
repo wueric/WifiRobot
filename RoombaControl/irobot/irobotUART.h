@@ -19,13 +19,12 @@
 #include "irobotError.h"
 #include "xqueue.h"
 #include "mbed.h"
+#include "TimeoutMultipleSerial.h"
 //#include "UART.h"
-
-const int READ_WRITE_GIVEUP_TIME  = 1000;
 
 /// UART port wrapper; change for your UART API
 //typedef MyRio_Uart * irobotUARTPort_t;
-typedef Serial* irobotUARTPort_t;
+typedef TimeoutMultipleSerial* irobotUARTPort_t;
 
 /// Baud rate codes
 typedef enum{

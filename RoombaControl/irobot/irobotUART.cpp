@@ -43,8 +43,8 @@ int32_t irobotUARTOpen(
     irobot_StatusMerge(&status, irobotUARTBaudCodeToRate(baud, &baudRate));
 
     if (!irobot_IsError(status)) {
-        port->baud(baudRate);
-        port->format(8, Serial::None, 1);
+        port->setBaud(baudRate);
+        port->setFormat(8, Serial::None, 1);
     }
 
     return status;
@@ -85,24 +85,8 @@ int32_t irobotUARTReadRaw(
     if (!data) {
         return ERROR_INVALID_PARAMETER;
     } else {
-        // will wait approximately READ_WRITE_GIVEUP_TIME seconds in total for input, and then
-        //  will give up if that time is exceeded
-        Timer timer;
-        for (size_t i = 0; i < nData; ++i) {
-            if (port->readable()) {
-                *(data+i) = (uint8_t) port->getc();
-            } else {
-                timer.start();
-                while (!port->readable() 
-                    && timer.read_ms() < READ_WRITE_GIVEUP_TIME) wait_ms(1);
-                timer.stop();
-
-                if (timer.read_ms() >= READ_WRITE_GIVEUP_TIME) {
-                    return ERROR_TIMEOUT;
-                }
-            }
-        }
-
+        int status = port->readMultChars(data, nData);
+        if (status == -1) return ERROR_TIMEOUT;
         return ERROR_SUCCESS;
     }
 }
@@ -139,30 +123,14 @@ int32_t irobotUARTWriteRaw(
     if (!data) {
         return ERROR_INVALID_PARAMETER;
     } else {
-
-        // will wait approximately READ_WRITE_GIVEUP_TIME seconds in total until space is
-        // available, and then will give up if that time is exceeded
-        Timer timer;
-        for (size_t i = 0; i < nData; ++i) {
-            if (port->writeable()) {
-                port->putc((int) (*(data+i)));
-            } else {
-                timer.start();
-                while (!port->writeable() 
-                    && timer.read_ms() < READ_WRITE_GIVEUP_TIME) wait_ms(1);
-                timer.stop();
-
-                if (timer.read_ms() >= READ_WRITE_GIVEUP_TIME) {
-                    return ERROR_TIMEOUT;
-                }
-            }
-        }
+        int status = port->writeMultChars(data, nData);
+        if (status == -1) return ERROR_TIMEOUT;
         return ERROR_SUCCESS;
     }
 }
 
 int32_t irobotUARTClear(
     const irobotUARTPort_t port) {
-    while (port->readable()) port->getc();
+    port->clearAll();
     return ERROR_SUCCESS;
 }
