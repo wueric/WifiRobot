@@ -10,6 +10,9 @@
  * 			  This software accompanies An Introductory Lab in Embedded and Cyber-Physical Systems
  * 			  and is licensed under a Creative Commons Attribution-NonCommercial-NoDerivs 3.0
  * 			  Unported License. See http://leeseshia.org/lab.
+
+ * Dependencies and typedef for irobotUARTPort_t modified to
+        support implementation for mbed
  */
 
 #ifndef _IROBOT_UART_H

@@ -1,5 +1,19 @@
 #include "irobotUART.h"
 
+/*
+Implementation for iRobot Create UART connection using mbed, Freescale KL25Z
+
+(This implementation is architecture specific and relies on the Serial class
+    in the mbed SDK and TimeoutMultipleSerial, which was written for this project)
+
+The interface was written by Jeff C. Jensen, 2013-12-09 and is 
+    Copyright (C) 2013, Jeff C. Jensen, Edward A. Lee, and Sanjit A. Seshia.
+ 	This software accompanies An Introductory Lab in Embedded and Cyber-Physical Systems 			      and is licensed under a Creative Commons Attribution-NonCommercial-NoDerivs 3.0
+
+The implementation was written by Eric Wu, 2014-11-10, and is based heavily off of the 
+    original implementation by Jeff C. Jensen.
+*/
+
 /// Convert a baud code into its actual rate
 /// \return error code
 static int32_t irobotUARTBaudCodeToRate(
