@@ -48,6 +48,6 @@ class TimeoutMultipleSerial {
         Serial port; // port
         uint32_t timeout; // timeout time in millisecondes
         Timer timer; // timer which tracks timeout time
-}
+};
 
 #endif

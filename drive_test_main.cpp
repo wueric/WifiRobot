@@ -39,11 +39,6 @@ int main (int argc, char** argv) {
         NULL, timeout);
     irobotUARTPort_t port = (irobotUARTPort_t) (&port_as_serial);
 
-
-
-    Serial port_as_serial = Serial(PTE22, PTE23);
-    irobotUARTPort_t port = (irobotUARTPort_t) (&port_as_serial);
-
     int32_t irobotStatus;
     
     irobotSensorGroup6_t sensors;

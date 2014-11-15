@@ -56,7 +56,7 @@ int TimeoutMultipleSerial::writeMultChars (const uint8_t* source,
 }
 
 int TimeoutMultipleSerial::clearAll() {
-    while (!port.readable()) port.getc();
+    while (port.readable()) port.getc();
     return 1;
 }
 
