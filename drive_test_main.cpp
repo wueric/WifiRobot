@@ -20,7 +20,7 @@ void irobotTestNavigate(
     int32_t* rightWheelSpeed) {
 
     *leftWheelSpeed = 100;
-    *rightWheelSpeed = 100;
+    *rightWheelSpeed = 50;
 
 }
     
@@ -35,7 +35,7 @@ int main (int argc, char** argv) {
 
     MMA8451Q accelerometer(PTE25, PTE24, MMA8451_I2C_ADDRESS);
 
-    TimeoutMultipleSerial port_as_serial = TimeoutMultipleSerial(PTE22, PTE23, 
+    TimeoutMultipleSerial port_as_serial = TimeoutMultipleSerial(PTC4, PTC3, 
         NULL, timeout);
     irobotUARTPort_t port = (irobotUARTPort_t) (&port_as_serial);
 
@@ -57,12 +57,12 @@ int main (int argc, char** argv) {
     /*
     For debugging only
     */
-    DigitalOut myled(LED1);
-    myled = 1;
+    DigitalOut myled(LED2);
 
     irobotSensorPollSensorGroup6(port, &sensors);
-
-    while (!sensors.buttons.advance) {
+    
+    while (!sensors.buttons.advance || true) {
+        myled = 1;
 
         // update from sensors
         irobotSensorPollSensorGroup6(port, &sensors);
