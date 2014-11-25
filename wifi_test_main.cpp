@@ -15,8 +15,10 @@
 
 #include "mbed.h"
 #include "cc3000.h"
-#include "HTTPClient.h"
 #include "IntensityScanner.h"
+
+const char SSID[] = "It Hertz When IP";
+const char key[] = "Rajashri1";
 
 // KL25Z wifi connection
 // we need to define connection pins for:
@@ -35,14 +37,15 @@ DigitalOut led_green(LED_GREEN);
 int main () {
     // by default, it's red
     printf("beginning\n");
-    led_red = 0;
-    led_green = 1;
+    led_red = 1;
+    led_green = 0;
 
-    IntensityScanner rssi_scanner = IntensityScanner(PTD7, PTD6, D10, SPI(D11, D12, PTC5), 500);
+    IntensityScanner rssi_scanner = IntensityScanner(PTD7, PTD6, D10, SPI(D11, D12, PTC5), 500, SSID, key, WPA2, false);
     uint8_t rssi;
     while (1) {
         if (rssi_scanner.rssi_for_ssid("It Hertz When IP", &rssi) == 0)
             pc.printf("Rssi is %d\n\n", rssi);
 
         wait(500);
+    }
 }
