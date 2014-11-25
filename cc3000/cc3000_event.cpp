@@ -209,6 +209,7 @@ uint8_t *cc3000_event::hci_event_handler(void *ret_param, uint8_t *from, uint8_t
 
     while (1)
     {
+
         if (_simple_link.get_data_received_flag() != 0)
         {
             received_data = _simple_link.get_received_data();
@@ -224,11 +225,10 @@ uint8_t *cc3000_event::hci_event_handler(void *ret_param, uint8_t *from, uint8_t
                 if (hci_unsol_event_handler((uint8_t *)received_data) == 0)
                 {
                     STREAM_TO_UINT8(received_data, HCI_DATA_LENGTH_OFFSET, length);
-
                     hci_event_debug_print( received_op_code );
-
                     switch(received_op_code)
-                    {
+                    {   
+                        
                     case HCI_CMND_READ_BUFFER_SIZE:
                         {
                             uint16_t temp = _simple_link.get_number_free_buffers();
@@ -351,19 +351,52 @@ uint8_t *cc3000_event::hci_event_handler(void *ret_param, uint8_t *from, uint8_t
                         //This argument returns in network order
                         memcpy((uint8_t *)ret_param, pucReceivedParams, 4);
                         break;
-
+                    
                     case HCI_CMND_WLAN_IOCTL_GET_SCAN_RESULTS:
-
+                        {
+                            /*
+                        char snake[20];
+                        for (int i = 12; i < 30; ++i) {
+                            snake[i-12] = (char) *(pucReceivedParams+i);
+                            
+                            }
+                        snake[19] = '\0';
+                        printf("%s\n", snake);
+                        
+                        printf("handling get scan results\n");
+                        */
+                        uint8_t received_params_copy[53];
+                        memcpy(received_params_copy, pucReceivedParams, 53);
+                        //printf("copied memory\n");
+                        
+                        
+                        STREAM_TO_UINT32((uint8_t *)received_params_copy,GET_SCAN_RESULTS_TABlE_COUNT_OFFSET,*(uint32_t *)ret_param);
+                        ret_param = ((uint8_t *)ret_param) + 4;
+                        STREAM_TO_UINT32((uint8_t *)received_params_copy,GET_SCAN_RESULTS_SCANRESULT_STATUS_OFFSET,*(uint32_t *)ret_param);
+                        ret_param = ((uint8_t *)ret_param) + 4;
+                        STREAM_TO_UINT16((uint8_t *)received_params_copy,GET_SCAN_RESULTS_ISVALID_TO_SSIDLEN_OFFSET,*(uint16_t *)ret_param);
+                        ret_param = ((uint8_t *)ret_param) + 2;
+                        STREAM_TO_UINT16((uint8_t *)received_params_copy,GET_SCAN_RESULTS_FRAME_TIME_OFFSET,*(uint16_t *)ret_param);
+                        ret_param = ((uint8_t *)ret_param) + 2;
+                        
+                        /*
+                        
                         STREAM_TO_UINT32((uint8_t *)pucReceivedParams,GET_SCAN_RESULTS_TABlE_COUNT_OFFSET,*(uint32_t *)ret_param);
                         ret_param = ((uint8_t *)ret_param) + 4;
+                        printf("handling get scan results 2");
                         STREAM_TO_UINT32((uint8_t *)pucReceivedParams,GET_SCAN_RESULTS_SCANRESULT_STATUS_OFFSET,*(uint32_t *)ret_param);
                         ret_param = ((uint8_t *)ret_param) + 4;
                         STREAM_TO_UINT16((uint8_t *)pucReceivedParams,GET_SCAN_RESULTS_ISVALID_TO_SSIDLEN_OFFSET,*(uint32_t *)ret_param);
                         ret_param = ((uint8_t *)ret_param) + 2;
                         STREAM_TO_UINT16((uint8_t *)pucReceivedParams,GET_SCAN_RESULTS_FRAME_TIME_OFFSET,*(uint32_t *)ret_param);
                         ret_param = ((uint8_t *)ret_param) + 2;
+                        */
                         memcpy((uint8_t *)ret_param, (uint8_t *)(pucReceivedParams + GET_SCAN_RESULTS_FRAME_TIME_OFFSET + 2), GET_SCAN_RESULTS_SSID_MAC_LENGTH);
+                        
                         break;
+                        }
+                        
+                        
 
                     case HCI_CMND_SIMPLE_LINK_START:
                         break;

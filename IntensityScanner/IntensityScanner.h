@@ -13,7 +13,4 @@ class IntensityScanner {
     private:
         mbed_cc3000::cc3000 wifi;
         uint32_t timeout;
-
-        getRSSI(char* ssid, int len);
-
 };
