@@ -6,7 +6,7 @@ class IntensityScanner {
         IntensityScanner (PinName cc3000_irq,
             PinName cc3000_en,
             PinName cc3000_cs,
-            SPI cc3000_spi, const char* SSID, const char* key, mbed_cc3000::Security sec, bool smart_config, uint32_t timeout);
+            SPI cc3000_spi, uint32_t timeout);
 
         int rssi_for_ssid (const char* ssid, uint8_t* rssi);
 

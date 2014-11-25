@@ -354,21 +354,9 @@ uint8_t *cc3000_event::hci_event_handler(void *ret_param, uint8_t *from, uint8_t
                     
                     case HCI_CMND_WLAN_IOCTL_GET_SCAN_RESULTS:
                         {
-                            /*
-                        char snake[20];
-                        for (int i = 12; i < 30; ++i) {
-                            snake[i-12] = (char) *(pucReceivedParams+i);
-                            
-                            }
-                        snake[19] = '\0';
-                        printf("%s\n", snake);
-                        
-                        printf("handling get scan results\n");
-                        */
+                        // this memcopy might be suboptimal... - Eric Wu 25 November 2014
                         uint8_t received_params_copy[53];
                         memcpy(received_params_copy, pucReceivedParams, 53);
-                        //printf("copied memory\n");
-                        
                         
                         STREAM_TO_UINT32((uint8_t *)received_params_copy,GET_SCAN_RESULTS_TABlE_COUNT_OFFSET,*(uint32_t *)ret_param);
                         ret_param = ((uint8_t *)ret_param) + 4;
@@ -379,18 +367,6 @@ uint8_t *cc3000_event::hci_event_handler(void *ret_param, uint8_t *from, uint8_t
                         STREAM_TO_UINT16((uint8_t *)received_params_copy,GET_SCAN_RESULTS_FRAME_TIME_OFFSET,*(uint16_t *)ret_param);
                         ret_param = ((uint8_t *)ret_param) + 2;
                         
-                        /*
-                        
-                        STREAM_TO_UINT32((uint8_t *)pucReceivedParams,GET_SCAN_RESULTS_TABlE_COUNT_OFFSET,*(uint32_t *)ret_param);
-                        ret_param = ((uint8_t *)ret_param) + 4;
-                        printf("handling get scan results 2");
-                        STREAM_TO_UINT32((uint8_t *)pucReceivedParams,GET_SCAN_RESULTS_SCANRESULT_STATUS_OFFSET,*(uint32_t *)ret_param);
-                        ret_param = ((uint8_t *)ret_param) + 4;
-                        STREAM_TO_UINT16((uint8_t *)pucReceivedParams,GET_SCAN_RESULTS_ISVALID_TO_SSIDLEN_OFFSET,*(uint32_t *)ret_param);
-                        ret_param = ((uint8_t *)ret_param) + 2;
-                        STREAM_TO_UINT16((uint8_t *)pucReceivedParams,GET_SCAN_RESULTS_FRAME_TIME_OFFSET,*(uint32_t *)ret_param);
-                        ret_param = ((uint8_t *)ret_param) + 2;
-                        */
                         memcpy((uint8_t *)ret_param, (uint8_t *)(pucReceivedParams + GET_SCAN_RESULTS_FRAME_TIME_OFFSET + 2), GET_SCAN_RESULTS_SSID_MAC_LENGTH);
                         
                         break;

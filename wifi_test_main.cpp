@@ -63,16 +63,6 @@ void irobotTestNavigate(
         *rightWheelSpeed = 100;
 }
 
-// KL25Z wifi connection
-// we need to define connection pins for:
-// - IRQ      => (pin D3)
-// - Enable   => (pin D5)
-// - SPI CS   => (pin D10)
-// - SPI MOSI => (pin D11)
-// - SPI MISO => (pin D12)
-// - SPI CLK  => (pin D13)
-// plus wifi network SSID, password, security level and smart-configuration flag.
-
 Serial pc(USBTX, USBRX);
 DigitalOut led_red(LED_RED);
 DigitalOut led_green(LED_GREEN);
@@ -83,8 +73,7 @@ int main () {
     led_red = 1;
     led_green = 0;
 
-    IntensityScanner rssi_scanner = IntensityScanner(PTD7, PTD6, D10, SPI(D11, D12, PTC5), 
-        SSID, key, mbed_cc3000::WPA2, false, 200);
+    IntensityScanner rssi_scanner = IntensityScanner(PTD7, PTD6, D10, SPI(D11, D12, PTC5), 200);
         
     uint8_t rssi;
     while (1) {
