@@ -3,15 +3,19 @@
 IntensityScanner::IntensityScanner (PinName cc3000_irq,
     PinName cc3000_en,
     PinName cc3000_cs,
-    SPI cc3000_spi, 
-    uint32_t timeout) : wifi(cc3000_irq, cc3000_en,
+    SPI cc3000_spi, const char* SSID, const char* key, mbed_cc3000::Security sec, bool smart_config, uint32_t timeout) : wifi(cc3000_irq, cc3000_en,
         cc3000_cs, cc3000_spi, SSID, key, sec, smart_config), timeout(timeout) {
-
     wifi.init();
+    /*
+    const unsigned long intervalTime[16] = { 2000, 2000, 2000, 2000,  2000,
+    2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000 };
+    */
 
+    /*wifi._wlan.ioctl_set_scan_params(timeout, 20, 30, 5,
+    0x7ff, -80, 0, 205, (uint32_t*) intervalTime);
+    */
     const unsigned long intervalTime[16] = { 200, 200, 200, 200,  200,
     200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200 };
-
     wifi._wlan.ioctl_set_scan_params(timeout, 20, 30, 5,
         0x400, -80, 0, 205, (uint32_t*) intervalTime);
         

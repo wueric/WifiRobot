@@ -1,92 +1,132 @@
-#include <mbed.h>
-#include <MMA8451Q.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include "irobot.h"
-#include "irobotSensorTypes.h"
-#include "accelerometer.h"
-#include "TimeoutMultipleSerial.h"
 
-#define MMA8451_I2C_ADDRESS (0x1d)
+#include "mbed.h"
+#include "irobot_drive_sense.h"
+
+#define abs(x)  (x<0)?-x:x
+
+Serial device(PTA2, PTA1);
+
+DigitalOut led1(LED1);
+DigitalOut led2(LED2);
+DigitalOut led3(LED3);
+DigitalOut led4(LED4);
+
+
+typedef enum a {
+    FORWARD,
+    TURN,
+    STOP
+} robotState_t;
 
 void irobotTestNavigate(
-    int32_t* netDistance,
-    int32_t* netAngle,
-    irobotSensorGroup6_t* sensors,
-    AccelMeasure* acc_meas,
-    int32_t* leftWheelSpeed,
-    int32_t* rightWheelSpeed) {
-
-    *leftWheelSpeed = 100;
-    *rightWheelSpeed = 50;
-
-}
+    int16_t netDistance,
+    int16_t netAngle,
+    int16_t* leftWheelSpeed,
+    int16_t* rightWheelSpeed) {
+    	
+    static robotState_t robotState = FORWARD;
+    static int32_t angleAtManeuverStart = 0;
+    static int32_t distanceAtManeuverStart = 0;
     
-                        
-
-static const float alpha_decay = 0.5; // accelerometer low pass filter negative
-        // feedback coefficient
-
-static const uint32_t timeout = 1000;
-
-int main (int argc, char** argv) {
-
-    MMA8451Q accelerometer(PTE25, PTE24, MMA8451_I2C_ADDRESS);
-
-    TimeoutMultipleSerial port_as_serial = TimeoutMultipleSerial(PTC4, PTC3, 
-        NULL, timeout);
-    irobotUARTPort_t port = (irobotUARTPort_t) (&port_as_serial);
-
-    int32_t irobotStatus;
+    if (robotState == FORWARD) {
+    	led1 = 1;
+    	led2 = 0;
+    	
+    	if (abs(netDistance - distanceAtManeuverStart) > 1000) {
+    		angleAtManeuverStart = netAngle;
+    		distanceAtManeuverStart = netDistance;
+    		robotState = TURN;
+    	}
+    } else if (robotState == TURN) {
+    	led2 = 1;
+    	led1 = 0;
+    	
+    	if (abs(netAngle - angleAtManeuverStart) > 360) {
+    		angleAtManeuverStart = netAngle;
+    		distanceAtManeuverStart = netDistance;
+    		robotState = STOP;
+    	}
+    	
+    }
     
-    irobotSensorGroup6_t sensors;
-    int32_t netDistance = 0;
-    int32_t netAngle = 0;
-
-    int32_t rightWheelSpeed = 0;
-    int32_t leftWheelSpeed = 0;
-
-    AccelMeasure accelMeasurements(0.0f, 0.0f, 0.0f);
-    AccelMeasure accelPrevMeasurements(0.0f, 0.0f, 0.0f);
-
-    int32_t status = irobotOpen(port);
-
-    
-    /*
-    For debugging only
-    */
-    DigitalOut myled(LED2);
-
-    irobotSensorPollSensorGroup6(port, &sensors);
-    
-    while (!sensors.buttons.advance || true) {
-        myled = 1;
-
-        // update from sensors
-        irobotSensorPollSensorGroup6(port, &sensors);
-
-        // take accelerometer measurement
-        accelMeasurements.updateAccelerometerRead();
-
-        // apply low pass filter y[n] = a * x[n] - (1-a) * y[n-1]
-        accelMeasurements = alpha_decay * accelMeasurements + 
-            (1 - alpha_decay) * accelPrevMeasurements;
-
-        // update variables
-        accelPrevMeasurements = accelMeasurements;
-
-        irobotTestNavigate(&netDistance,
-            &netAngle,
-            &sensors,
-            &accelMeasurements,
-            &leftWheelSpeed,
-            &rightWheelSpeed);
-       
-        irobotDriveDirect(port, leftWheelSpeed, rightWheelSpeed); 
+    switch (robotState) {
+    	case FORWARD:
+    		*leftWheelSpeed = 100;
+    		*rightWheelSpeed = 100;
+    		break;
+    	case TURN:
+    		*leftWheelSpeed = 100;
+    		*rightWheelSpeed = -100;
+    		break;
+    	case STOP:
+    		*leftWheelSpeed = 0;
+    		*rightWheelSpeed = 0;
+    	
     }
 
-    status = irobotClose(port);
-    return status;
+}
+
+int main () {
+	
+	wait(5);
+
+	led1 = 0;
+	led2 = 0;
+	led3 = 0;
+	led4 = 0;
+	
+	device.baud(57600);
+	
+	led1 = 1;
+	led2 = 0;
+
+    int16_t netAngle = 0;
+    int16_t netDistance = 0;
+    int16_t rightWheelSpeed = 0;
+    int16_t leftWheelSpeed = 0;
+
+    int16_t angleDelta;
+    int16_t distanceDelta;
+
+    irobotDriveSense::start(device);
+    
+    led1 = 0;
+	led2 = 0;
+	led3 = 0;
+	led4 = 0;
+    
+    for (int i = 0; i < 6; ++i) {
+		led1 = i & 0x1;
+		wait_ms(500);
+	}
+		
+	irobotDriveSense::poll_netDistance(device, &distanceDelta);
+    irobotDriveSense::poll_netAngle(device, &angleDelta);
+    
+    distanceDelta = 0;
+    angleDelta = 0;
+		
+	led1 = 0;
+	led2 = 0;
+	led3 = 0;
+	led4 = 0;
+    
+    while (1) {
+        
+        irobotDriveSense::poll_netAngle(device, &angleDelta);
+        netAngle += angleDelta;
+
+        irobotDriveSense::poll_netDistance(device, &distanceDelta);
+        netDistance += distanceDelta;
+
+        // execute statechart
+        irobotTestNavigate(
+        	netDistance,
+            netAngle,
+            &leftWheelSpeed,
+            &rightWheelSpeed);
+            
+        irobotDriveSense::setWheelSpeed(device, rightWheelSpeed, leftWheelSpeed);
+    }
+
 }
