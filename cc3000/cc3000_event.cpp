@@ -1,4 +1,8 @@
 /*****************************************************************************
+*  Modified by Eric Wu 12-14-2014
+*  Fixed casting bug when flipping endianess for scanning networks
+*  There is are memcpy operations that are probably slightly unnecessary, but it works...
+*
 *
 *  C++ interface/implementation created by Martin Kojtal (0xc0170). Thanks to
 *  Jim Carver and Frank Vannieuwkerke for their inital cc3000 mbed port and
@@ -352,23 +356,11 @@ uint8_t *cc3000_event::hci_event_handler(void *ret_param, uint8_t *from, uint8_t
                         memcpy((uint8_t *)ret_param, pucReceivedParams, 4);
                         break;
                     
-                    case HCI_CMND_WLAN_IOCTL_GET_SCAN_RESULTS:
+                    case HCI_CMND_WLAN_IOCTL_GET_SCAN_RESULTS: // This case edited by Eric Wu. Fixes casting bug when flipping endianess
                         {
-                            /*
-                        char snake[20];
-                        for (int i = 12; i < 30; ++i) {
-                            snake[i-12] = (char) *(pucReceivedParams+i);
-                            
-                            }
-                        snake[19] = '\0';
-                        printf("%s\n", snake);
-                        
-                        printf("handling get scan results\n");
-                        */
+
                         uint8_t received_params_copy[53];
-                        memcpy(received_params_copy, pucReceivedParams, 53);
-                        //printf("copied memory\n");
-                        
+                        memcpy(received_params_copy, pucReceivedParams, 53);                        
                         
                         STREAM_TO_UINT32((uint8_t *)received_params_copy,GET_SCAN_RESULTS_TABlE_COUNT_OFFSET,*(uint32_t *)ret_param);
                         ret_param = ((uint8_t *)ret_param) + 4;
@@ -378,20 +370,8 @@ uint8_t *cc3000_event::hci_event_handler(void *ret_param, uint8_t *from, uint8_t
                         ret_param = ((uint8_t *)ret_param) + 2;
                         STREAM_TO_UINT16((uint8_t *)received_params_copy,GET_SCAN_RESULTS_FRAME_TIME_OFFSET,*(uint16_t *)ret_param);
                         ret_param = ((uint8_t *)ret_param) + 2;
-                        
-                        /*
-                        
-                        STREAM_TO_UINT32((uint8_t *)pucReceivedParams,GET_SCAN_RESULTS_TABlE_COUNT_OFFSET,*(uint32_t *)ret_param);
-                        ret_param = ((uint8_t *)ret_param) + 4;
-                        printf("handling get scan results 2");
-                        STREAM_TO_UINT32((uint8_t *)pucReceivedParams,GET_SCAN_RESULTS_SCANRESULT_STATUS_OFFSET,*(uint32_t *)ret_param);
-                        ret_param = ((uint8_t *)ret_param) + 4;
-                        STREAM_TO_UINT16((uint8_t *)pucReceivedParams,GET_SCAN_RESULTS_ISVALID_TO_SSIDLEN_OFFSET,*(uint32_t *)ret_param);
-                        ret_param = ((uint8_t *)ret_param) + 2;
-                        STREAM_TO_UINT16((uint8_t *)pucReceivedParams,GET_SCAN_RESULTS_FRAME_TIME_OFFSET,*(uint32_t *)ret_param);
-                        ret_param = ((uint8_t *)ret_param) + 2;
-                        */
-                        memcpy((uint8_t *)ret_param, (uint8_t *)(pucReceivedParams + GET_SCAN_RESULTS_FRAME_TIME_OFFSET + 2), GET_SCAN_RESULTS_SSID_MAC_LENGTH);
+                        memcpy((uint8_t *)ret_param, (uint8_t *)(pucReceivedParams + GET_SCAN_RESULTS_FRAME_TIME_OFFSET + 2), 
+                            GET_SCAN_RESULTS_SSID_MAC_LENGTH);
                         
                         break;
                         }
