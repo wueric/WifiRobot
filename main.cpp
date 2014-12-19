@@ -14,21 +14,29 @@
 
 // setup irobot
 Serial device(PTC4, PTC3);
+
+// setup timer
 Timer timer;
+
 // setup bluetooth
 Serial bluetooth(PTA2, PTA1);
+
 // setup compass and bias
 HMC5883L compass(PTC9, PTC8);
+
 // setup ultrasound scanner
 UltrasoundAnalog ultrasoundDistance(PTC2,
     1.0 / ULTRASOUND_AFFINE_X_SLOPE,
     -ULTRASOUND_AFFINE_X_BIAS /  ULTRASOUND_AFFINE_X_SLOPE);
 
+// setup LEDs for debugging help
 DigitalOut led1(LED1);
 DigitalOut led2(LED2);
 DigitalOut led3(LED3);
 DigitalOut led4(LED4);
 
+
+// Type for robot finite state machine states
 typedef enum RobotState_t {
     FORWARD,
     TURN_CLOCKWISE,
@@ -38,6 +46,9 @@ typedef enum RobotState_t {
     TURNAROUND
 } RobotState_t;
 
+
+// Type for representing the possible directions that
+//  the robot can travel
 typedef enum PossibleHeadings_t {
     NORTH,
     EAST,
@@ -45,7 +56,8 @@ typedef enum PossibleHeadings_t {
     WEST
 } PossibleHeadings_t;
 
-
+// type for representing angles for the directions that
+//  the robot should travel in
 struct Headings {
     double north;
     double east;
@@ -53,7 +65,14 @@ struct Headings {
     double west;
 };
 
-
+/* determines angle values for north, south, east, west
+    @param HMC5883L* magneto - pointer to the object that represents
+        the magnetometer
+    @parm Headings* heading - pointer to the Headings struct that represents
+        the valid directions. The struct is modified in this function
+    @param PossibleHeadings_t currHeading - the heading that the robot currently
+        has
+*/
 void initializeHeadings (HMC5883L* magneto, 
     Headings* heading, 
     PossibleHeadings_t currHeading) {
@@ -101,6 +120,29 @@ double abs_subtract_angle (double a1, double a2) {
     return abs_difference;
 }
 
+
+/*
+Finite state machine for searching in a X-by-Y grid pattern,
+with Y as the major axis. Robot starts at (0, 0) and goes along
+the y-axis first.
+
+    @param Serial* robot - pointer to the Serial object
+        representing the connection to the robot
+    @param Serial* bluetooth - pointer to the Serial object
+        representing the connection to the bluetooth module
+    @param HMC5883L* magneto - pointer to the HMC5883L object
+        representing the magnetometer
+    @param Timer* timer - pointer to Timer.
+    @param IntensityScanner* scanner - pointer to the IntensityScanner
+        class, which wraps around the mbed_cc3000 class. This will
+        perform the signal intensity scans
+    @param uint8_t* rssiArray - array where the RSSI values that are
+        measured will be stored. Should be at least boxHeight * boxWidth
+        bytes in size, otherwise a segfault will occur
+    @param uint32_t boxHeight - height (y coordinate) of the box being
+        searched
+    @param uint32_t boxWidth - width (x coordinate) of the box being searched
+*/
 PossibleHeadings_t robotControl (Serial* robot,
             Serial* bluetooth,
             HMC5883L* magneto, 
@@ -377,7 +419,36 @@ PossibleHeadings_t robotControl (Serial* robot,
     return currHeading;
 }
 
+/*
+Finite state machine for going to a specified (x, y) coordinate
 
+Assumptions:
+    - robot is located at either (xMax, yMax) and facing north (i.e.
+        in the +y direction) or at (xMax, 0) and facing south (i.e. 
+        in the -y direction)
+
+Robot will do a 180 degree turn, and then travel the necessary y steps
+    first and then travel the necessary x steps to reach the supplied
+    coordinates
+
+    @param Serial* robot - pointer to the Serial object
+        representing the connection to the robot
+    @param Serial* bluetooth - pointer to the Serial object
+        representing the connection to the bluetooth module
+    @param HMC5883L* magneto - pointer to the HMC5883L object
+        representing the magnetometer
+    @param Timer* timer - pointer to Timer.
+    @param PossibleHeadings_t currrHeading - the current heading of the robot.
+        As implmented here it should be either NORTH or SOUTH
+    @param uint32_t currentXCoordinate - the x coordinate that the robot is
+        initially located at when the function is invoked
+    @param uint32_t currentYCoordinate - the y coordinate that the robot is
+        initially located at when the funciton is invoked
+    @param uint32_t xDestination - the x coordinate of the destination that
+        the robot is supposed to go to
+    @param uint32_t yDestination - the y coordinate of the destination that
+        the robot is supposed to go to
+*/
 
 void robotFindMax (Serial* robot,
             Serial* bluetooth,
@@ -686,14 +757,19 @@ void robotFindMax (Serial* robot,
 
 int main(void)
 {
+    // iRobot create requires 57600 baud
     device.baud(57600);
+
+    // send start command to put iRobot in full mode
     irobotDriveSense::start(device);
     
     wait_ms(1000);
     led3 = 1;
 
+    // set bluetooth baud rate
     bluetooth.baud(115200);
-    
+   
+    // initialize magnetometer 
     compass.init();
     
     bluetooth.printf("setting up wifi shield\r\n");
@@ -708,39 +784,12 @@ int main(void)
     
     int16_t data[3];
     
-    /*
-    timer.stop();
-    timer.reset();
-    timer.start();
-    irobotDriveSense::setWheelSpeed(device, 130, -130);
-    while (timer.read_ms() < 4 * NINETY_DEGREE_TURN) {
-            compass.getXYZ(data);
-            bluetooth.printf("%d,%d\r\n", data[0], data[2]);
-            wait_ms(50);
-    }
+    /* calibrate the magnetometer by spinning 360 degrees
+      and taking magnetometer readings
+
+    The correct bias point will be (0.5 * (x_max + x_min),
+        (0.5 * (z_max + z_min))
     */
-    
-    /*
-    bluetooth.printf("break up the file here\r\n");
-    irobotDriveSense::setWheelSpeed(device, 0, 0);
-    wait_ms(5000);
-    
-    timer.stop();
-    timer.reset();
-    timer.start();
-    irobotDriveSense::setWheelSpeed(device, -130, 130);
-    while (timer.read_ms() < 4 * NINETY_DEGREE_TURN) {
-            compass.getXYZ(data);
-            bluetooth.printf("%d,%d\r\n", data[0], data[2]);
-            wait_ms(50);
-    }
-    
-    irobotDriveSense::setWheelSpeed(device, 0, 0);
-    while(1);
-    */
-    
-    
-    /*
     int16_t x_calibrate[256];
     int16_t z_calibrate[256];
 
@@ -779,11 +828,10 @@ int main(void)
     }
     
     compass.setConstantOffset(-(x_min + x_max) / 2, 0, -(z_min + z_max) / 2);
-    */
-    compass.setConstantOffset(-416, 0, 420);
     
     wait(2);
     
+    /* Invoke the grid FSM */
     int32_t xDim = 3;
     int32_t yDim = 3;
     uint8_t* destinationArray = (uint8_t*) malloc (sizeof(uint8_t) * xDim * yDim);
@@ -799,6 +847,9 @@ int main(void)
             
     wait(5);
 
+    /*
+    Search for the coordinates of the point with maximal RSSI
+    */
     uint8_t currMax = 0;
     int32_t xBest = -1;
     int32_t yBest = -1;
@@ -814,6 +865,9 @@ int main(void)
             
     free(destinationArray);
 
+    /*
+    Go to the point with the maximal RSSI
+    */
     robotFindMax (&device,
             &bluetooth,
             &compass, 
